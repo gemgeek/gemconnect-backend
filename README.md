@@ -39,25 +39,58 @@ gemconnect-backend/
 └── README.md           (This file)
 ```
 
+The problem is that the code commands are not inside proper Markdown code blocks. Markdown is very sensitive to indentation and spacing.
+
+When you have a numbered list and want to put a code block inside a list item, the code block (starting with ```) must be indented.
+
+Here is the corrected, copy-pasteable version.
+
+The Correct Markdown
+Markdown
+
 ## Installation (Beginner Friendly)
-1. Clone the repository
-   git clone https://github.com/<your-username>/gemconnect-backend.git
-   cd gemconnect-backend
-2. Create a virtual environment
-   python -m venv venv
-   source venv/bin/activate   (Linux/Mac)
-   venv\Scripts\activate      (Windows)
-3. Install dependencies
-   pip install -r requirements.txt
-4. Set up environment variables
-   - Create a `.env` file in the root directory
-   - Include variables like:
-     SECRET_KEY=<your-secret-key>
-     DATABASE_URL=postgres://user:password@localhost:5432/gemconnect_db
-5. Run migrations
-   python manage.py migrate
-6. Start the development server
-   python manage.py runserver
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/<your-username>/gemconnect-backend.git
+    cd gemconnect-backend
+    ```
+
+2.  **Create and activate a virtual environment**
+    ```bash
+    # Create the environment
+    python -m venv venv
+
+    # Activate on Linux/Mac
+    source venv/bin/activate
+
+    # Activate on Windows
+    venv\Scripts\activate
+    ```
+
+3.  **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Set up environment variables**
+    * Create a `.env` file in the root directory.
+    * Add your environment variables to this file. For example:
+
+    ```.env
+    SECRET_KEY=<your-secret-key>
+    DATABASE_URL=postgres://user:password@localhost:5432/gemconnect_db
+    ```
+
+5.  **Run migrations**
+    ```bash
+    python manage.py migrate
+    ```
+
+6.  **Start the development server**
+    ```bash
+    python manage.py runserver
+    ```
 
 ## Usage
 - Access GraphQL Playground at http://127.0.0.1:8000/graphql/
