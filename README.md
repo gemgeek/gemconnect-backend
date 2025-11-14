@@ -1,4 +1,4 @@
-# GemConnect Backend - Project Nexus
+# GemConnect Backend - Project Nexus 🐍
 
 ## About GemConnect
 GemConnect is a dynamic social media feed platform designed to connect users, allowing them to share posts, interact with content, and communicate in real-time. This repository contains the backend system, which manages user authentication, posts, comments, likes, shares, follows, notifications, and messaging through a scalable GraphQL API.
@@ -28,6 +28,17 @@ The database schema for GemConnect is designed to ensure scalability and efficie
 - Authentication: Django Auth system
 - Containerization: Docker (optional, for deployment)
 - Testing: GraphQL Playground / Postman
+
+<p align="left">
+  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django" />
+  <img src="https://img.shields.io/badge/Graphene_Django-E10098?style=for-the-badge&logo=graphql&logoColor=white" alt="Graphene-Django" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Django_Auth-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Auth" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white" alt="Postman" />
+</p>
+
+---
 
 ## Project Structure
 ```bash
