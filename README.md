@@ -39,15 +39,6 @@ gemconnect-backend/
 └── README.md           (This file)
 ```
 
-The problem is that the code commands are not inside proper Markdown code blocks. Markdown is very sensitive to indentation and spacing.
-
-When you have a numbered list and want to put a code block inside a list item, the code block (starting with ```) must be indented.
-
-Here is the corrected, copy-pasteable version.
-
-The Correct Markdown
-Markdown
-
 ## Installation (Beginner Friendly)
 
 1.  **Clone the repository**
