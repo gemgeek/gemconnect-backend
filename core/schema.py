@@ -1,3 +1,4 @@
+import graphql_jwt
 import graphene
 from graphene_django import DjangoObjectType
 from django.db import models
@@ -260,3 +261,10 @@ class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     share_post = SharePost.Field()
     send_message = SendMessage.Field()
+
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)    
