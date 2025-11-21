@@ -29,7 +29,10 @@ DEBUG = os.environ.get('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['https://nonmanipulatory-fearsomely-nathanial.ngrok-free.dev']
+CSRF_TRUSTED_ORIGINS = [
+    'https://gemconnect-backend.onrender.com',
+    'https://nonmanipulatory-fearsomely-nathanial.ngrok-free.dev'
+    ]
 
 
 # Application definition
