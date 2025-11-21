@@ -1,3 +1,5 @@
+import base64
+from django.core.files.base import ContentFile
 import graphql_jwt
 import graphene
 from graphene_django import DjangoObjectType
@@ -85,15 +87,31 @@ class CreatePost(graphene.Mutation):
 
     class Arguments:
         content = graphene.String(required=True)
+        image_data = graphene.String(required=False) 
 
-    def mutate(self, info, content):
+    def mutate(self, info, content, image_data=None):
         user = info.context.user
         if user.is_anonymous:
             raise Exception("Not logged in!")
         
+        # Create the Post object
         post = Post(content=content, author=user)
-        post.save()
+
+        # If there is an image, decode it!
+        if image_data:
+            try:
+                # Split the header from the data
+                format, imgstr = image_data.split(';base64,') 
+                ext = format.split('/')[-1] # get 'jpg' or 'png'
+                
+                # Create a file from the string
+                data = ContentFile(base64.b64decode(imgstr), name=f"post_image.{ext}")
+                post.image = data
+            except Exception as e:
+                print("Image decode error:", e)
+                # We continue even if image fails, or you can raise Exception
         
+        post.save()
         return CreatePost(post=post)
 
 
