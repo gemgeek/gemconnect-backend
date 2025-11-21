@@ -13,6 +13,26 @@ class UserType(DjangoObjectType):
         model = User
         fields = ("id", "username", "email", "bio", "avatar", "is_verified")
 
+    followers_count = graphene.Int()
+    following_count = graphene.Int()
+    is_following = graphene.Boolean()
+    
+    post_set = graphene.List(lambda: PostType)
+
+    def resolve_followers_count(self, info):
+        return Follow.objects.filter(following=self).count()
+
+    def resolve_following_count(self, info):
+        return Follow.objects.filter(follower=self).count()
+
+    def resolve_is_following(self, info):
+        user = info.context.user
+        if user.is_anonymous: return False
+        return Follow.objects.filter(follower=user, following=self).exists()
+    
+    def resolve_post_set(self, info):
+        return Post.objects.filter(author=self).order_by('-created_at')
+
 class LikeType(DjangoObjectType):
     class Meta:
         model = Like
@@ -55,61 +75,51 @@ class Query(graphene.ObjectType):
     all_posts = graphene.List(PostType)
     my_notifications = graphene.List(NotificationType)
     get_messages = graphene.List(MessageType, friend_id=graphene.ID(required=True))
+    
+    user = graphene.Field(UserType, id=graphene.ID(required=True))
 
     def resolve_all_posts(root, info):
         return Post.objects.all()
 
     def resolve_my_notifications(root, info):
         user = info.context.user
-        if user.is_anonymous:
-            return []
-        # Return newest notifications first
+        if user.is_anonymous: return []
         return Notification.objects.filter(recipient=user).order_by('-created_at')
 
     def resolve_get_messages(root, info, friend_id):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-            
+        if user.is_anonymous: raise Exception("Not logged in!")
         friend = User.objects.get(id=friend_id)
-        
-        # Get messages where (Sender is Me AND Receiver is Friend) OR (Sender is Friend AND Receiver is Me)
         return Message.objects.filter(
             (models.Q(sender=user) & models.Q(receiver=friend)) |
             (models.Q(sender=friend) & models.Q(receiver=user))
-        ).order_by('created_at')    
+        ).order_by('created_at')
+
+    def resolve_user(root, info, id):
+        return User.objects.get(pk=id)    
 
 
 # MUTATIONS
 
 class CreatePost(graphene.Mutation):
     post = graphene.Field(PostType)
-
     class Arguments:
         content = graphene.String(required=True)
         image_data = graphene.String(required=False) 
 
     def mutate(self, info, content, image_data=None):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-        
-        # Create the Post object
+        if user.is_anonymous: raise Exception("Not logged in!")
         post = Post(content=content, author=user)
 
-        # If there is an image, decode it!
         if image_data:
             try:
-                # Split the header from the data
                 format, imgstr = image_data.split(';base64,') 
-                ext = format.split('/')[-1] # get 'jpg' or 'png'
-                
-                # Create a file from the string
+                ext = format.split('/')[-1]
                 data = ContentFile(base64.b64decode(imgstr), name=f"post_image.{ext}")
                 post.image = data
             except Exception as e:
                 print("Image decode error:", e)
-                # We continue even if image fails, or you can raise Exception
         
         post.save()
         return CreatePost(post=post)
@@ -117,108 +127,64 @@ class CreatePost(graphene.Mutation):
 
 class CreateComment(graphene.Mutation):
     comment = graphene.Field(CommentType)
-
     class Arguments:
         post_id = graphene.ID(required=True)
         text = graphene.String(required=True)
 
     def mutate(self, info, post_id, text):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-        
+        if user.is_anonymous: raise Exception("Not logged in!")
         post = Post.objects.get(id=post_id)
-        
         comment = Comment(author=user, post=post, text=text)
         comment.save()
-
-        # NOTIFICATION TRIGGER
         if post.author != user:
-            Notification.objects.create(
-                recipient=post.author,
-                sender=user,
-                notification_type='comment',
-                post=post
-            )
-        
+            Notification.objects.create(recipient=post.author, sender=user, notification_type='comment', post=post)
         return CreateComment(comment=comment)
 
 
 class LikePost(graphene.Mutation):
     user = graphene.Field(UserType)
     post = graphene.Field(PostType)
-
     class Arguments:
         post_id = graphene.ID(required=True)
 
     def mutate(self, info, post_id):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-
+        if user.is_anonymous: raise Exception("Not logged in!")
         post = Post.objects.get(id=post_id)
-
         existing_like = Like.objects.filter(user=user, post=post)
-
         if existing_like.count() > 0:
-            # Unlike: Delete the like
             existing_like.delete()
         else:
-            # Like: Create the like
             Like.objects.create(user=user, post=post)
-
-            # NOTIFICATION TRIGGER
             if post.author != user:
-                Notification.objects.create(
-                    recipient=post.author,
-                    sender=user,
-                    notification_type='like',
-                    post=post
-                )
-
+                Notification.objects.create(recipient=post.author, sender=user, notification_type='like', post=post)
         return LikePost(user=user, post=post)
 
 
 class FollowUser(graphene.Mutation):
     ok = graphene.Boolean()
-    
     class Arguments:
         user_id = graphene.ID(required=True)
 
     def mutate(self, info, user_id):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-
+        if user.is_anonymous: raise Exception("Not logged in!")
         target_user = User.objects.get(id=user_id)
+        if user == target_user: raise Exception("Cannot follow self")
         
-        if user == target_user:
-             raise Exception("You cannot follow yourself.")
-
         existing_follow = Follow.objects.filter(follower=user, following=target_user)
-
         if existing_follow.count() > 0:
-            # Unfollow
             existing_follow.delete()
             return FollowUser(ok=False) 
         else:
-            # Follow
             Follow.objects.create(follower=user, following=target_user)
-
-            # NOTIFICATION TRIGGER
-            Notification.objects.create(
-                recipient=target_user,
-                sender=user,
-                notification_type='follow',
-                post=None # Follows don't link to a specific post
-            )
-
+            Notification.objects.create(recipient=target_user, sender=user, notification_type='follow', post=None)
             return FollowUser(ok=True)
 
 
 class RegisterUser(graphene.Mutation):
     user = graphene.Field(UserType)
-
     class Arguments:
         username = graphene.String(required=True)
         password = graphene.String(required=True)
@@ -233,41 +199,31 @@ class RegisterUser(graphene.Mutation):
 
 class SharePost(graphene.Mutation):
     share = graphene.Field(ShareType)
-
     class Arguments:
         post_id = graphene.ID(required=True)
         message = graphene.String(required=False)
 
     def mutate(self, info, post_id, message=None):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-
+        if user.is_anonymous: raise Exception("Not logged in!")
         post = Post.objects.get(id=post_id)
-        
         share = Share(original_post=post, shared_by=user, message=message)
         share.save()
-
         return SharePost(share=share)
 
 
 class SendMessage(graphene.Mutation):
     message = graphene.Field(MessageType)
-
     class Arguments:
         receiver_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
     def mutate(self, info, receiver_id, content):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("Not logged in!")
-
+        if user.is_anonymous: raise Exception("Not logged in!")
         receiver = User.objects.get(id=receiver_id)
-        
         msg = Message(sender=user, receiver=receiver, content=content)
         msg.save()
-
         return SendMessage(message=msg)        
 
 
