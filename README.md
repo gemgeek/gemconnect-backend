@@ -1,115 +1,132 @@
-# GemConnect Backend - Project Nexus 🐍
+# GemConnect Backend API 🐍
 
-## About GemConnect
-GemConnect is a dynamic social media feed platform designed to connect users, allowing them to share posts, interact with content, and communicate in real-time. This repository contains the backend system, which manages user authentication, posts, comments, likes, shares, follows, notifications, and messaging through a scalable GraphQL API.
+[![Deployed on Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://gemconnect-backend.onrender.com/admin/)
+[![GraphQL API](https://img.shields.io/badge/API-GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)](https://gemconnect-backend.onrender.com/graphql/)
+[![Built With Django](https://img.shields.io/badge/Built_With-Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 
-## Features
-- User Management: Register, login, and maintain user profiles
-- Post Management: Create, edit, and delete posts with optional images
-- Commenting: Users can comment on posts with threaded interactions
-- Likes: Track user likes for analytics and notifications
-- Shares: Share posts with optional messages
-- Follow System: Follow and unfollow users to curate feeds
-- Notifications: Receive alerts for likes, comments, shares, follows, and messages
-- Messaging: One-to-one chat between users with read status tracking
-- GraphQL API: Flexible querying for posts, interactions, and users
-- Database: PostgreSQL used for relational data storage
-- Backend Framework: Django for rapid, secure backend development
+## 📖 About GemConnect
+**GemConnect** is a full-stack social media platform designed for creators to share portfolio work in a distraction-free environment. This repository hosts the **Backend API**, which powers the mobile application by managing authentication, social graph relationships, and content delivery.
 
-## ERD (Entity Relationship Diagram)
-The database schema for GemConnect is designed to ensure scalability and efficient relationships between entities.
-![Application ERD](docs/images/GemConnect.png)
+It uses a **Monolithic Architecture** serving a **GraphQL API**, ensuring the frontend fetches exactly the data it needs in a single request.
 
-
-## Tech Stack
-- Backend Framework: Django
-- API: GraphQL (Graphene-Django)
-- Database: PostgreSQL
-- Authentication: Django Auth system
-- Containerization: Docker (optional, for deployment)
-- Testing: GraphQL Playground / Postman
-
-<p align="left">
-  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django" />
-  <img src="https://img.shields.io/badge/Graphene_Django-E10098?style=for-the-badge&logo=graphql&logoColor=white" alt="Graphene-Django" />
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/Django_Auth-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Auth" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white" alt="Postman" />
-</p>
+## 🚀 Live Links
+- **Live Admin Panel:** [https://gemconnect-backend.onrender.com/admin/](https://gemconnect-backend.onrender.com/admin/)
+- **GraphiQL Playground:** [https://gemconnect-backend.onrender.com/graphql/](https://gemconnect-backend.onrender.com/graphql/)
+- **Frontend Repository:** [Link to your Mobile Repo]
 
 ---
 
-## Project Structure
+## 🛠 Tech Stack
+
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | **Django** | Robust, secure web framework for rapid development. |
+| **API** | **Graphene-Django** | Implements GraphQL schemas, queries, and mutations. |
+| **Database** | **PostgreSQL** | Relational database for production (Hosted on Render). |
+| **Auth** | **JSON Web Tokens (JWT)** | Stateless authentication via `django-graphql-jwt`. |
+| **Hosting** | **Render** | Containerized cloud deployment. |
+| **Server** | **Gunicorn & WhiteNoise** | Production server and static file management. |
+
+---
+
+## ⚡ Key Features
+
+### 🔐 Authentication & Security
+- **JWT Implementation:** Secure login/registration returning persistent tokens.
+- **Middleware Protection:** Custom settings to handle CORS and Trusted Origins for mobile connectivity.
+
+### 📡 Social Graph API
+- **User Profiles:** Dynamic fetching of bio, avatar, follower/following counts.
+- **Feed Logic:** Retrieval of posts sorted by recency with nested author details.
+- **Interactions:** - **Mutations:** `createPost`, `likePost`, `createComment`, `followUser`.
+  - **Optimized Queries:** `allPosts`, `user(id)`, `myNotifications`.
+
+### 🖼️ Image Handling
+- **Base64 Decoding:** Custom logic to accept raw image strings from mobile devices and convert them into Django `ContentFile` objects for storage.
+
+---
+
+## 🗂 Database Schema (ERD)
+The database uses a relational model linking Users to their Content and Interactions.
+![Application ERD](docs/images/GemConnect.png)
+
+
+## 💻 Local Installation Guide
+
+Follow these steps to run the backend locally for development.
+
+### 1. Clone the Repository
 ```bash
-gemconnect-backend/
-├── gemconnect/         (Django project settings)
-├── apps/               (All backend apps: users, posts, notifications, etc.)
-├── manage.py           (Django CLI)
-├── requirements.txt    (Python dependencies)
-└── README.md           (This file)
+git clone https://github.com/<your-username>/gemconnect-backend.git
+cd gemconnect-backend
 ```
 
-## Installation (Beginner Friendly)
+### 2. Create Virtual Environment
+```bash
+# Windows
+python -m venv venv
+.\venv\Scripts\activate
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/<your-username>/gemconnect-backend.git
-    cd gemconnect-backend
-    ```
+# Mac/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
 
-2.  **Create and activate a virtual environment**
-    ```bash
-    # Create the environment
-    python -m venv venv
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-    # Activate on Linux/Mac
-    source venv/bin/activate
+### 4. Configure Environment
+The project defaults to **SQLite** for local development — no complex setup required.  
+*Optional:* To test with the production setup, set `DEBUG=False` in `settings.py`.
 
-    # Activate on Windows
-    venv\Scripts\activate
-    ```
+### 5. Run Migrations & Server
+```bash
+python manage.py migrate
+python manage.py runserver
+```
 
-3.  **Install dependencies**
-    ```bash
-    pip install -r requirements.txt
-    ```
+The API will be available at:  
+`http://127.0.0.1:8000/graphql/`
 
-4.  **Set up environment variables**
-    * Create a `.env` file in the root directory.
-    * Add your environment variables to this file. For example:
+---
 
-    ```.env
-    SECRET_KEY=<your-secret-key>
-    DATABASE_URL=postgres://user:password@localhost:5432/gemconnect_db
-    ```
+## 🧪 API Documentation (GraphQL)
 
-5.  **Run migrations**
-    ```bash
-    python manage.py migrate
-    ```
+You can test the API using the **GraphiQL Playground**.
 
-6.  **Start the development server**
-    ```bash
-    python manage.py runserver
-    ```
+### Sample Query: Fetch Feed
+```graphql
+query {
+  allPosts {
+    id
+    content
+    image
+    author {
+      username
+      avatar
+    }
+    likes {
+      id
+    }
+  }
+}
+```
 
-## Usage
-- Access GraphQL Playground at http://127.0.0.1:8000/graphql/
-- Test queries and mutations for users, posts, comments, likes, shares, follows, notifications, and messages
+### Sample Mutation: Login
+```graphql
+mutation {
+  tokenAuth(username: "Matilda", password: "password123") {
+    token
+  }
+}
+```
 
-## Next Steps
-- Implement real-time subscriptions for notifications and messaging (GraphQL Subscriptions / Channels)
-- Write unit and integration tests
-- Deploy backend (Docker / Heroku / Render)
+---
 
-## Collaboration & Contributions
-This repository is for personal development as part of the ProDev Backend Engineering project. Collaborations or pull requests are welcome under mentorship guidelines.
+## 🤝 Contributing
+This project was built as a **Capstone Project / Project Nexus** for the **ProDev Engineering Program**.  
+Developed by **Matilda Esenam Gbeve**.
 
-## Roadmap
-- Define data models and relationships
-- Set up Django project
-- Implement GraphQL API for posts, users, and interactions
-- Implement authentication and permissions
-- Connect to frontend apps (mobile & web)
-- Deploy backend for live testing
+---
